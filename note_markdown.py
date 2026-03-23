@@ -109,6 +109,12 @@ def convert_to_markdown(input_file, output_file, preview=False):
             if preview:
                 actions.append("title_underline")
 
+        # if the line starts with > it is a blockquote in markdown, escape it
+        elif line.startswith(">"):
+            output_line = prefix_tofu(line)
+            if preview:
+                actions.append("prefix_tofu,escape_blockquote")
+
         # if line.trim() start with # then it is not a title in markdown
         # it is a comment, use \# to replace #
         elif line.startswith("#"):
