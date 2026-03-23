@@ -22,6 +22,10 @@ def replace_spaces(line):
     return line
 
 
+def prefix_tofu(line):
+    return "□" + line
+
+
 def convert_to_markdown(input_file, output_file, preview=False):
     print(f"{input_file}")
 
@@ -35,12 +39,12 @@ def convert_to_markdown(input_file, output_file, preview=False):
 
     p = 0
     while p < len(lines):
-
         line_orig = lines[p].replace("\n", "")
         line = line_orig
         if preview:
             actions = []
 
+        # Pre-process whitespaces
         # replace the leading spaces with code block
         if line.startswith(" "):
             leading_ws_count = len(line) - len(line.lstrip())
@@ -48,7 +52,7 @@ def convert_to_markdown(input_file, output_file, preview=False):
             replaced_leading = original_leading.replace(" ", "░")
             line = replaced_leading + line[leading_ws_count:]
             if preview:
-                actions.append(f"replace({original_leading!r},{replaced_leading!r})")
+                actions.append(f"leading_whitespace_░")
 
         # replace space with non-breaking space
         # alt 0 1 6 0 or alt 2 5 5 or option space on mac
@@ -56,7 +60,7 @@ def convert_to_markdown(input_file, output_file, preview=False):
         line = replace_spaces(line)
         if line != before_replace_spaces:
             if preview:
-                actions.append(f"replace({before_replace_spaces!r},{line!r})")
+                actions.append(f"replace_spaces")
 
         # Output line
         output_line = ""
@@ -64,21 +68,26 @@ def convert_to_markdown(input_file, output_file, preview=False):
         if not line:  # If line is empty, do nothing
             output_line = ""
 
-        # if next line is all ==== then current line is title, do nothing
+        # if next line is all '=' or all '-' and same length,
+        # current line is a title/section title, do nothing
         elif (
             p < len(lines) - 1
-            and (lines[p + 1].replace("=", "") == "")
-            and len(lines[p]) == len(lines[p + 1])
+            and (
+                lines[p + 1].replace("=", "") == ""
+                or lines[p + 1].replace("-", "") == ""
+            )
+            and len(lines[p]) == len(lines[p + 1])  # same length as next line
         ):
             output_line = line
 
-        # if next line is all --- then current line is section title, do nothing
-        elif (
-            p < len(lines) - 1
-            and (lines[p + 1].replace("-", "") == "")
-            and len(lines[p]) == len(lines[p + 1])
+        # if the current line has only '-' or '=' and not the same width as previous line,
+        # add zero-width space to prevent it from being a title
+        elif (line.replace("-", "") == "" or line.replace("=", "") == "") and (
+            p == 0 or len(line) != len(lines[p - 1].replace("\n", ""))
         ):
-            output_line = line
+            output_line = prefix_tofu(line)
+            if preview:
+                actions.append(f"prefix_tofu")
 
         # if line.trim() start with # then it is not a title in markdown
         # it is a comment, use \# to replace #
@@ -101,6 +110,7 @@ def convert_to_markdown(input_file, output_file, preview=False):
         if output_line == "":
             output_lines.append("\n")
         else:
+            # Add two spaces to all not empty lines
             if preview:
                 actions.append("add_2_spaces")
             output_line += "  "
