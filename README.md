@@ -28,6 +28,9 @@ Then you can run `note` command to format the notes.
 
 `./note [-f|--file] abc_note.txt` will format the note.  
 
+Refer `doc` folder for setup `Format on Save` in text editor.  
+Support setup for Sublime Text.  
+
 
 note markdown
 -------------
