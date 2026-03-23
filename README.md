@@ -28,7 +28,7 @@ Then you can run `note` command to format the notes.
 
 `./note [-f|--file] abc_note.txt` will format the note.  
 
-* Format on Save
+* Format on Save  
 Refer `doc` folder for setup `Format on Save` in text editor.  
 Support setup for VS Code and Sublime Text.  
 
