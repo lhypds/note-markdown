@@ -15,10 +15,10 @@ note
 
 Executable that format the notes.  
 
-* Python version
+* Python version  
 Use `setup.sh` to setup and use `build.sh` to build.  
 
-* Rust version
+* Rust version  
 Rust version is faster.  
 `cd note_rust` run `build.sh` to build.  
 `cargo` is required, use `brew install rust` to install.  
@@ -26,7 +26,7 @@ Rust version is faster.
 Either python or rust will generate `note` executable.  
 Then you can run `note` command to format the notes.  
 
-`note [-f|--file] abc_note.txt` will format the note.  
+`./note [-f|--file] abc_note.txt` will format the note.  
 
 
 note markdown
