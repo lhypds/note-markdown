@@ -2,7 +2,6 @@ import os
 import re
 import subprocess
 import argparse
-from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -159,9 +158,8 @@ def convert_to_markdown(
             i += 1
 
     if preview:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         original_name = os.path.splitext(os.path.basename(input_file))[0]
-        preview_filename = f"{timestamp}_notemd_preview_{original_name}.txt"
+        preview_filename = f"{original_name}_pr.txt"
         if preview_output_dir is None:
             preview_output_dir = os.path.dirname(output_file)
         preview_file = os.path.join(preview_output_dir, preview_filename)
