@@ -14,8 +14,8 @@ fi
 # Read TARGET_DIR from .env
 TARGET_DIR=$(grep "^TARGET_DIR=" .env | cut -d '=' -f 2)
 
-# Trim whitespace
-TARGET_DIR=$(echo "$TARGET_DIR" | xargs)
+# Trim whitespace and trailing slash
+TARGET_DIR=$(echo "$TARGET_DIR" | xargs | sed 's:/*$::')
 
 if [ -z "$TARGET_DIR" ]; then
     echo "Error: TARGET_DIR not found in .env"
