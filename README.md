@@ -1,6 +1,6 @@
 
-note
-====
+.note
+=====
 
 note is a format.
 
