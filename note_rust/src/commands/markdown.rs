@@ -1,7 +1,5 @@
-use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
-
 
 fn replace_spaces(line: &str) -> String {
     let mut out = String::with_capacity(line.len());
@@ -33,35 +31,28 @@ fn replace_spaces(line: &str) -> String {
 }
 
 fn prefix_tofu(line: &str) -> String {
-    let mut out = String::with_capacity(line.len() + 1);
-    out.push('□');
-    out.push_str(line);
-    out
-}
-
-fn is_only(line: &str, ch: char) -> bool {
-    !line.is_empty() && line.chars().all(|c| c == ch)
+    format!("□{}", line)
 }
 
 fn is_underline_candidate(line: &str) -> bool {
-    is_only(line, '=') || is_only(line, '-')
+    !line.is_empty() && (line.chars().all(|c| c == '=') || line.chars().all(|c| c == '-'))
 }
 
 fn trim_crlf(s: &str) -> String {
     s.trim_end_matches(['\n', '\r']).to_string()
 }
 
-fn convert_to_markdown(input_file: &Path, output_file: &Path, preview: bool) -> Result<(), String> {
+pub fn run(input_file: &Path, output_file: &Path, preview: bool) -> Result<(), String> {
     println!("{}", input_file.display());
 
     let content = fs::read_to_string(input_file)
         .map_err(|e| format!("failed to read '{}': {}", input_file.display(), e))?;
 
-    let mut lines: Vec<String> = content.lines().map(trim_crlf).collect();
-
-    if content.is_empty() {
-        lines.clear();
-    }
+    let lines: Vec<String> = if content.is_empty() {
+        Vec::new()
+    } else {
+        content.lines().map(trim_crlf).collect()
+    };
 
     let mut output_lines: Vec<String> = Vec::with_capacity(lines.len());
     let mut preview_lines: Vec<String> = Vec::new();
@@ -82,9 +73,9 @@ fn convert_to_markdown(input_file: &Path, output_file: &Path, preview: bool) -> 
             }
         }
 
-        let before_replace_spaces = line.clone();
+        let before = line.clone();
         line = replace_spaces(&line);
-        if preview && line != before_replace_spaces {
+        if preview && line != before {
             actions.push("replace_spaces".to_string());
         }
 
@@ -94,7 +85,8 @@ fn convert_to_markdown(input_file: &Path, output_file: &Path, preview: bool) -> 
         if line.is_empty() {
             output_line.clear();
         } else if p < lines.len() - 1
-            && (lines[p + 1].replace('=', "").is_empty() || lines[p + 1].replace('-', "").is_empty())
+            && (lines[p + 1].replace('=', "").is_empty()
+                || lines[p + 1].replace('-', "").is_empty())
             && lines[p].chars().count() == lines[p + 1].chars().count()
         {
             output_line = line.clone();
@@ -103,14 +95,16 @@ fn convert_to_markdown(input_file: &Path, output_file: &Path, preview: bool) -> 
                 actions.push("title_or_section_title".to_string());
             }
         } else if is_underline_candidate(&line)
-            && (p == 0 || line.chars().count() != lines[p - 1].replace('\n', "").chars().count())
+            && (p == 0
+                || line.chars().count() != lines[p - 1].trim_end_matches(['\n', '\r']).chars().count())
         {
             output_line = prefix_tofu(&line);
             if preview {
                 actions.push("prefix_tofu".to_string());
             }
         } else if is_underline_candidate(&line)
-            && (p == 0 || line.chars().count() == lines[p - 1].replace('\n', "").chars().count())
+            && (p == 0
+                || line.chars().count() == lines[p - 1].trim_end_matches(['\n', '\r']).chars().count())
         {
             output_line = line.clone();
             add_2_spaces = false;
@@ -168,13 +162,11 @@ fn convert_to_markdown(input_file: &Path, output_file: &Path, preview: bool) -> 
             .file_stem()
             .and_then(|s| s.to_str())
             .ok_or_else(|| "invalid input filename".to_string())?;
-
         let preview_filename = format!("{}_pr.txt", original_name);
-        let preview_output_dir = output_file
+        let preview_dir = output_file
             .parent()
             .ok_or_else(|| "invalid output path".to_string())?;
-        let preview_file = preview_output_dir.join(preview_filename);
-
+        let preview_file = preview_dir.join(preview_filename);
         fs::write(preview_file, format!("{}\n", preview_lines.join("\n")))
             .map_err(|e| format!("failed to write preview file: {}", e))?;
     }
@@ -182,24 +174,25 @@ fn convert_to_markdown(input_file: &Path, output_file: &Path, preview: bool) -> 
     Ok(())
 }
 
-fn parse_args() -> (bool, Option<String>) {
-    let args: Vec<String> = env::args().collect();
+pub fn main(argv: &[String]) {
+    let _ = dotenvy::dotenv();
+
     let mut preview = false;
     let mut file: Option<String> = None;
 
-    let mut i = 1usize;
-    while i < args.len() {
-        match args[i].as_str() {
+    let mut i = 0usize;
+    while i < argv.len() {
+        match argv[i].as_str() {
             "--preview" => {
                 preview = true;
                 i += 1;
             }
             "--file" | "-f" => {
-                if i + 1 >= args.len() {
+                if i + 1 >= argv.len() {
                     eprintln!("Error: --file requires a value.");
                     std::process::exit(1);
                 }
-                file = Some(args[i + 1].clone());
+                file = Some(argv[i + 1].clone());
                 i += 2;
             }
             arg => {
@@ -209,18 +202,10 @@ fn parse_args() -> (bool, Option<String>) {
         }
     }
 
-    (preview, file)
-}
-
-fn main() {
-    let _ = dotenvy::dotenv();
-
-    let (preview, file) = parse_args();
-
     let mut file_path = match file {
         Some(f) => f.trim().to_string(),
         None => {
-            println!("Error: no file path provided.");
+            eprintln!("Error: no file path provided.");
             std::process::exit(1);
         }
     };
@@ -243,7 +228,7 @@ fn main() {
     let output_path = parent_dir.join(".markdown");
     if !output_path.exists() {
         if let Err(e) = fs::create_dir_all(&output_path) {
-            eprintln!("Error creating output directory '{}': {}", output_path.display(), e);
+            eprintln!("Error creating output directory: {}", e);
             std::process::exit(1);
         }
     }
@@ -254,7 +239,7 @@ fn main() {
         .unwrap_or("output");
     let output_file = output_path.join(format!("{}.md", stem));
 
-    if let Err(e) = convert_to_markdown(&input_file, &output_file, preview) {
+    if let Err(e) = run(&input_file, &output_file, preview) {
         eprintln!("Error: {}", e);
         std::process::exit(1);
     }
