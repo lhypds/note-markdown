@@ -4,6 +4,8 @@
 *.json
 .venv/
 
+*.md
+
 build/
 dist/
 __pycache__/

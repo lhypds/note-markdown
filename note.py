@@ -83,9 +83,6 @@ def main():
 
     file_path = args.file_path
     if not file_path:
-        file_path = input("Enter file path: ").strip()
-
-    if not file_path:
         print("Error: no file path provided.")
         raise SystemExit(1)
 

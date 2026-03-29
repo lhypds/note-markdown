@@ -2,12 +2,6 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-fn env_bool(name: &str, default: bool) -> bool {
-    match env::var(name) {
-        Ok(v) => v.to_lowercase() == "true",
-        Err(_) => default,
-    }
-}
 
 fn replace_spaces(line: &str) -> String {
     let mut out = String::with_capacity(line.len());
@@ -188,11 +182,10 @@ fn convert_to_markdown(input_file: &Path, output_file: &Path, preview: bool) -> 
     Ok(())
 }
 
-fn parse_args() -> (bool, Option<String>, Option<String>) {
+fn parse_args() -> (bool, Option<String>) {
     let args: Vec<String> = env::args().collect();
     let mut preview = false;
-    let mut path: Option<String> = None;
-    let mut filename: Option<String> = None;
+    let mut file: Option<String> = None;
 
     let mut i = 1usize;
     while i < args.len() {
@@ -201,91 +194,53 @@ fn parse_args() -> (bool, Option<String>, Option<String>) {
                 preview = true;
                 i += 1;
             }
-            "--path" => {
+            "--file" | "-f" => {
                 if i + 1 >= args.len() {
-                    eprintln!("Error: --path requires a value.");
+                    eprintln!("Error: --file requires a value.");
                     std::process::exit(1);
                 }
-                path = Some(args[i + 1].clone());
+                file = Some(args[i + 1].clone());
                 i += 2;
             }
             arg => {
-                if filename.is_none() {
-                    filename = Some(arg.to_string());
-                    i += 1;
-                } else {
-                    eprintln!("Error: unrecognized argument '{}'.", arg);
-                    std::process::exit(1);
-                }
+                eprintln!("Error: unrecognized argument '{}'.", arg);
+                std::process::exit(1);
             }
         }
     }
 
-    (preview, path, filename)
+    (preview, file)
 }
 
 fn main() {
     let _ = dotenvy::dotenv();
 
-    let mut note_dir = env::var("NOTE_DIR").unwrap_or_else(|_| "../".to_string());
-    let use_nsfw_filter = env_bool("USE_NSFW_FILTER", true);
+    let (preview, file) = parse_args();
 
-    let (preview, path, filename) = parse_args();
+    let mut file_path = match file {
+        Some(f) => f.trim().to_string(),
+        None => {
+            println!("Error: no file path provided.");
+            std::process::exit(1);
+        }
+    };
 
-    if let Some(p) = path {
-        note_dir = p;
+    if !file_path.ends_with(".txt") {
+        file_path.push_str(".txt");
     }
 
-    if !Path::new(&note_dir).is_dir() {
-        note_dir = "../".to_string();
-    }
-
-    if preview && filename.is_none() {
-        println!(
-            "Error: --preview requires a filename, e.g. python note_markdown.py --preview filename.txt"
-        );
+    let input_file = PathBuf::from(&file_path);
+    if !input_file.is_file() {
+        eprintln!("Error: file '{}' not found.", file_path);
         std::process::exit(1);
     }
 
-    if preview {
-        let mut file = filename.unwrap_or_default().trim().to_string();
-        if !file.ends_with(".txt") {
-            file.push_str(".txt");
-        }
+    let parent_dir = input_file
+        .parent()
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(|| PathBuf::from("."));
 
-        let input_file = Path::new(&note_dir).join(&file);
-        if !input_file.is_file() {
-            println!(
-                "Error: file '{}' not found inside NOTE_DIR '{}'.",
-                file, note_dir
-            );
-            std::process::exit(1);
-        }
-
-        let exe_path = match env::current_exe() {
-            Ok(p) => p,
-            Err(_) => PathBuf::from("."),
-        };
-        let script_dir = exe_path
-            .parent()
-            .map(|p| p.to_path_buf())
-            .unwrap_or_else(|| PathBuf::from("."));
-
-        let stem = input_file
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .unwrap_or("preview");
-        let output_file = script_dir.join(format!("{}_pr.md", stem));
-
-        if let Err(e) = convert_to_markdown(&input_file, &output_file, true) {
-            eprintln!("Error: {}", e);
-            std::process::exit(1);
-        }
-        println!("Processed files: 1");
-        return;
-    }
-
-    let output_path = Path::new(&note_dir).join(".markdown");
+    let output_path = parent_dir.join(".markdown");
     if !output_path.exists() {
         if let Err(e) = fs::create_dir_all(&output_path) {
             eprintln!("Error creating output directory '{}': {}", output_path.display(), e);
@@ -293,43 +248,15 @@ fn main() {
         }
     }
 
-    let note_filter: Vec<&str> = if use_nsfw_filter {
-        vec!["Sex", "Adult"]
-    } else {
-        vec![]
-    };
+    let stem = input_file
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("output");
+    let output_file = output_path.join(format!("{}.md", stem));
 
-    let mut processed_count = 0usize;
-
-    let entries = match fs::read_dir(&note_dir) {
-        Ok(e) => e,
-        Err(e) => {
-            eprintln!("Error reading NOTE_DIR '{}': {}", note_dir, e);
-            std::process::exit(1);
-        }
-    };
-
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if !path.is_file() {
-            continue;
-        }
-
-        let Some(filename) = path.file_name().and_then(|s| s.to_str()) else {
-            continue;
-        };
-
-        if filename.ends_with(".txt") && !note_filter.iter().any(|f| filename.contains(f)) {
-            let input_file = Path::new(&note_dir).join(filename);
-            let output_file = output_path.join(filename.replace(".txt", ".md"));
-
-            if let Err(e) = convert_to_markdown(&input_file, &output_file, false) {
-                eprintln!("Error processing '{}': {}", filename, e);
-                std::process::exit(1);
-            }
-            processed_count += 1;
-        }
+    if let Err(e) = convert_to_markdown(&input_file, &output_file, preview) {
+        eprintln!("Error: {}", e);
+        std::process::exit(1);
     }
-
-    println!("Processed files: {}", processed_count);
+    println!("Processed files: 1");
 }
