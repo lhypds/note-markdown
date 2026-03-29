@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./notemd --path './test'
+./notemd --file './test/a.txt'
