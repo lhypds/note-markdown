@@ -3,9 +3,9 @@
 =====
 
 
-note is a format.
+`note` is a format for `txt` files.  
 
-Basiclly it is free to write, but there are few rules to follow:  
+Basiclly it is free to write. There are few rules to follow:  
 - Note file name should be `ABC Note`, `ABC` is the topic.  
 - Title with double underline (`=`), section title with a underline (`-`).  
 - The First section title will be `ABC`. Describes the topic.  
@@ -14,51 +14,63 @@ Basiclly it is free to write, but there are few rules to follow:
 note
 ----
 
-Executable that format the notes.  
+Executable.  
+
+Use `setup.sh` to setup and use `build.sh` to build.  
 
 * Python version  
-Use `setup.sh` to setup and use `build.sh` to build.  
-`build.sh` generates both `note` and `notemd`.  
+`python` and `pip` is required.  
 
 * Rust version  
+Locate at `rust` folder.  
 Rust version is faster.  
-`cd note_rust` run `build.sh` to build.  
 `cargo` is required, use `brew install rust` to install.  
 
-Either python or rust will generate `note` executable.  
-Then you can run `note` command to format the notes.  
+Run `build.sh` to select Python or Rust.  
+Either python or rust version generates `note` executable.  
+Run `note` command with commands.  
 
-`./note [-f|--file] abc_note.txt` will format the note.  
+Release  
+`release.sh` to build `dot_note.zip` to `release` folder.
+
+
+command: format
+---------------
+
+`format` - Format the note file.  
+`./note format [-f|--file] abc_note.txt`  
+It will format the note.  
 
 * Format on Save  
-Refer [doc](https://github.com/lhypds/.note/tree/main/doc) to setup `Format on Save` for text editors.  
+Refer [doc](./doc) to setup `Format on Save` for text editors.  
 Support setup for VS Code and Sublime Text.  
 
 
-note markdown
+command: create
+---------------
+
+`create` - Create a new note file.  
+`./note create --name "Abc`  
+It will create a new note file with name `Abc Note.txt`.
+
+`[-d|--directory]`  
+Specify the directory to create the note in. Defaults to parent directory.  
+`./note create --name "Abc" --directory path/to/directory`  
+
+
+command: markdown
+-----------------
+
+`markdown` - Convert note to Markdown format.  
+`./note markdown [-f|--file] path/to/note.txt`  
+It will convert `note.txt` to `note.md`.  
+
+`--preview`  
+`./note markdown --preview path/to/note.txt` will generate `note_pr.md` and `note_pr.txt` for preview.  
+
+
+tools scripts
 -------------
-
-Convert note to Markdown format.  
-`python note_markdown.py`  
-Or use executable `./notemd` after running `build.sh`.  
-
-* Path to note files  
-It will use the `NOTE_DIR` as path.  
-Or set with `--path` option.  
-If both not set, it will use `../` as default path.  
-
-* Preview result  
-`python note_markdown.py --preview abc_note.txt`  
-Output `abc_note_pr.md` and `abc_note_pr.txt`.  
-
-* Helper scripts  
-`note_markdown.sh`  
-`preview.sh`  
-`mdclear.sh`  
-
-
-note tools
-----------
 
 underline_fix.py  
 Fix the unederline, make the underline the same length as the title.  
