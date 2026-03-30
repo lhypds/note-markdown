@@ -52,7 +52,12 @@ cp "$ROOT_DIR/uninstall.sh" "$RELEASE_DIR/rust/uninstall.sh"
 chmod +x "$RELEASE_DIR/rust/install.sh" "$RELEASE_DIR/rust/uninstall.sh"
 echo "Copied install.sh and uninstall.sh to $RELEASE_DIR/rust"
 
+# Copy documentation and license files
+cp "$ROOT_DIR/doc/installation/README.txt" "$RELEASE_DIR/README.txt"
+cp "$ROOT_DIR/LICENSE" "$RELEASE_DIR/LICENSE"
+echo "Copied README.txt and LICENSE to $RELEASE_DIR"
+
 cd "$RELEASE_DIR"
-zip -r -9 "$TMP_ZIP_PATH" "python" "rust"
+zip -r -9 "$TMP_ZIP_PATH" "python" "rust" "README.txt" "LICENSE"
 mv "$TMP_ZIP_PATH" "$ZIP_PATH"
 echo "Created archive: $ZIP_PATH"
