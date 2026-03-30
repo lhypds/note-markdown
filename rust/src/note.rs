@@ -21,9 +21,11 @@ Commands:
               <file>                  Target note file path.
 
   markdown  Convert a note file to Markdown.
+  2md       Alias for 'markdown'.
             Output is written to a .markdown/ folder in the current directory.
 
             note markdown <file> [--preview]
+            note 2md <file> [--preview]
 
             Arguments:
               <file>                  Path to the .txt file to process.
@@ -55,7 +57,7 @@ fn main() {
         "-h" | "--help" => println!("{}", HELP),
         "-v" | "--version" => println!("v{} (rust)", VERSION),
         "format" => commands::format::main(command_args),
-        "markdown" => commands::markdown::main(command_args),
+        "markdown" | "2md" => commands::markdown::main(command_args),
         "create" => commands::create::main(command_args),
         "update" => commands::update::main(command_args),
         // fallback: treat all args as format arguments (e.g. note -f file.txt)
