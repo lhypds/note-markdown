@@ -3,29 +3,32 @@ mod commands;
 const HELP: &str = "Usage: note <command> [options]
 
 Commands:
-  format    Fix section underline lengths in a note file.
-
-            note format -f <file>
-
-            Options:
-              -f, --file <file>       Target note file path.
-
-  markdown  Convert a note file to Markdown.
-            Output is written to a .markdown/ folder next to the input file.
-
-            note markdown -f <file> [--preview]
-
-            Options:
-              -f, --file <file>       Path to the .txt file to process.
-              --preview               Also write a preview action log file.
-
   create    Create a new note file.
 
-            note create -n <name> [-d <directory>]
+            note create <name> [-d <directory>]
 
+            Arguments:
+              <name>                  Basename of the note file.
+                                     e.g. 'ABC Note' creates 'ABC Note.txt'.
             Options:
-              -n, --name <name>       Name of the note. Creates '<name> Note.txt'.
-              -d, --directory <dir>   Directory to create the file in. Default: ../";
+              -d, --directory <dir>   Directory to create the file in. Default: .
+
+  format    Fix section underline lengths in a note file.
+
+            note format <file>
+
+            Arguments:
+              <file>                  Target note file path.
+
+  markdown  Convert a note file to Markdown.
+            Output is written to a .markdown/ folder in the current directory.
+
+            note markdown <file> [--preview]
+
+            Arguments:
+              <file>                  Path to the .txt file to process.
+            Options:
+              --preview               Also write a preview action log file.";
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();

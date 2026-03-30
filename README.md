@@ -34,40 +34,40 @@ Release
 `release.sh` to build `dot_note.zip` to `release` folder.
 
 
+command: create
+---------------
+
+`create` - Create a new note file.  
+`note create "ABC Note"`  
+It will create `ABC Note.txt` in the current directory.
+
+`[-d|--directory]`  
+Specify the directory to create the note in. Defaults to current directory.  
+`note create "ABC Note" --directory path/to/directory`  
+
+
 command: format
 ---------------
 
 `format` - Format the note file.  
-`./note format [-f|--file] abc_note.txt`  
-It will format the note.  
+`note format "ABC Note.txt"`  
+It will fix section underline lengths in the note file.  
 
 * Format on Save  
 Refer [doc](./doc) to setup `Format on Save` for text editors.  
 Support setup for VS Code and Sublime Text.  
 
 
-command: create
----------------
-
-`create` - Create a new note file.  
-`./note create --name "Abc"`  
-It will create a new note file with name `Abc Note.txt`.
-
-`[-d|--directory]`  
-Specify the directory to create the note in. Defaults to current directory.  
-`./note create --name "Abc" --directory path/to/directory`  
-
-
 command: markdown
 -----------------
 
 `markdown` - Convert note to Markdown format.  
-`./note markdown [-f|--file] path/to/note.txt`  
-It will convert `note.txt` to `note.md`,  
-and output to `.markdown` folder in current directory.  
+`note markdown "ABC Note.txt"`  
+It will convert `ABC Note.txt` to `ABC Note.md`,  
+and output to `.markdown` folder in the current directory.  
 
 `--preview`  
-`./note markdown --preview path/to/note.txt` will generate `note_pr.md` and `note_pr.txt` for preview.  
+`note markdown "ABC Note.txt" --preview` will also generate a preview action log file.  
 
 
 tools scripts
