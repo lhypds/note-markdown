@@ -15,6 +15,7 @@ fi
 REMOVED=0
 REMOVED_BIN=0
 REMOVED_LIB=0
+REMOVED_DATA=0
 
 # Remove binary / symlink from BIN_DIR
 if [ -e "$BIN_DIR/note" ] || [ -L "$BIN_DIR/note" ]; then
@@ -32,6 +33,15 @@ if [ -d "$LIB_DIR" ]; then
     REMOVED_LIB=1
 fi
 
+# Remove user data directory
+NOTE_DATA_DIR="$HOME/.note"
+if [ -d "$NOTE_DATA_DIR" ]; then
+    rm -rf "$NOTE_DATA_DIR"
+    echo "Removed: $NOTE_DATA_DIR"
+    REMOVED=1
+    REMOVED_DATA=1
+fi
+
 if [ "$REMOVED" -eq 0 ]; then
     echo "Nothing to uninstall — note does not appear to be installed."
 else
@@ -42,5 +52,8 @@ else
     fi
     if [ "$REMOVED_LIB" -eq 1 ]; then
         echo "  - $LIB_DIR"
+    fi
+    if [ "$REMOVED_DATA" -eq 1 ]; then
+        echo "  - $NOTE_DATA_DIR"
     fi
 fi
