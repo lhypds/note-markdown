@@ -28,7 +28,14 @@ Commands:
             Arguments:
               <file>                  Path to the .txt file to process.
             Options:
-              --preview               Also write a preview action log file.";
+              --preview               Also write a preview action log file.
+
+  update    Update note to the latest release from GitHub.
+
+            note update [-f]
+
+            Options:
+              -f, --force             Reinstall even if already up to date.";
 
 const VERSION: &str = env!("APP_VERSION");
 
