@@ -158,6 +158,7 @@ fn extract_archive(archive_path: &Path, extract_dir: &Path) {
             if let Some(parent) = out_path.parent() {
                 fs::create_dir_all(parent).ok();
             }
+            let unix_mode = entry.unix_mode();
             let mut out_file = fs::File::create(&out_path).unwrap_or_else(|e| {
                 eprintln!("Error: cannot create {}: {}", out_path.display(), e);
                 exit(1);
@@ -166,6 +167,13 @@ fn extract_archive(archive_path: &Path, extract_dir: &Path) {
                 eprintln!("Error: extraction failed: {}", e);
                 exit(1);
             });
+            drop(out_file);
+            // Restore Unix permissions stored in the zip entry (e.g. 0o755 for executables)
+            #[cfg(unix)]
+            if let Some(mode) = unix_mode {
+                use std::os::unix::fs::PermissionsExt;
+                fs::set_permissions(&out_path, fs::Permissions::from_mode(mode)).ok();
+            }
         }
     }
 }

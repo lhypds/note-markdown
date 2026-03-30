@@ -100,7 +100,12 @@ def extract_archive(archive_path, extract_dir):
     print(f"  Extracting to {extract_dir} ...")
     try:
         with zipfile.ZipFile(archive_path, "r") as zf:
-            zf.extractall(extract_dir)
+            for info in zf.infolist():
+                extracted = zf.extract(info, extract_dir)
+                # Restore Unix permissions stored in the zip entry (e.g. 0o755 for executables)
+                unix_mode = (info.external_attr >> 16) & 0xFFFF
+                if unix_mode:
+                    os.chmod(extracted, unix_mode)
     except zipfile.BadZipFile as e:
         print(f"Error: archive is not a valid zip file: {e}")
         sys.exit(1)
