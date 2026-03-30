@@ -21,7 +21,7 @@ if [ ! -f "$ROOT_DIR/note" ]; then
 fi
 
 # ── Detect variant from executable ──────────────────────────────────────────
-VERSION_OUTPUT="$("$ROOT_DIR/note" --version 2>/dev/null || true)"
+VERSION_OUTPUT="$(cd "$ROOT_DIR" && ./note --version)"
 
 if echo "$VERSION_OUTPUT" | grep -q "(rust)"; then
     VARIANT="rust"
