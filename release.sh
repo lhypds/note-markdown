@@ -30,18 +30,6 @@ echo "Rust binaries moved to $RELEASE_DIR/rust"
 
 echo "Release complete: $RELEASE_DIR"
 
-VERSION="$(cat "$ROOT_DIR/VERSION" | tr -d '[:space:]')"
-ZIP_NAME="dot_note_v${VERSION}.zip"
-ZIP_PATH="$RELEASE_DIR/$ZIP_NAME"
-TMP_ZIP_PATH="$ROOT_DIR/$ZIP_NAME"
-
-if [ -f "$ZIP_PATH" ]; then
-	rm -f "$ZIP_PATH"
-fi
-if [ -f "$TMP_ZIP_PATH" ]; then
-	rm -f "$TMP_ZIP_PATH"
-fi
-
 # Copy install/uninstall scripts to python and rust folders
 cp "$ROOT_DIR/install.sh" "$RELEASE_DIR/python/install.sh"
 cp "$ROOT_DIR/uninstall.sh" "$RELEASE_DIR/python/uninstall.sh"
@@ -53,14 +41,33 @@ cp "$ROOT_DIR/uninstall.sh" "$RELEASE_DIR/rust/uninstall.sh"
 chmod +x "$RELEASE_DIR/rust/install.sh" "$RELEASE_DIR/rust/uninstall.sh"
 echo "Copied install.sh and uninstall.sh to $RELEASE_DIR/rust"
 
-# Copy documentation and license files
-cp "$ROOT_DIR/doc/installation/README.txt" "$RELEASE_DIR/README.txt"
-cp "$ROOT_DIR/LICENSE" "$RELEASE_DIR/LICENSE"
-echo "Copied README.txt and LICENSE to $RELEASE_DIR"
+# Copy documentation and license files to both python and rust folders
+cp "$ROOT_DIR/doc/installation/README.txt" "$RELEASE_DIR/python/README.txt"
+cp "$ROOT_DIR/LICENSE" "$RELEASE_DIR/python/LICENSE"
+echo "Copied README.txt and LICENSE to $RELEASE_DIR/python"
+
+cp "$ROOT_DIR/doc/installation/README.txt" "$RELEASE_DIR/rust/README.txt"
+cp "$ROOT_DIR/LICENSE" "$RELEASE_DIR/rust/LICENSE"
+echo "Copied README.txt and LICENSE to $RELEASE_DIR/rust"
+
+VERSION="$(cat "$ROOT_DIR/VERSION" | tr -d '[:space:]')"
+PYTHON_ZIP_NAME="dot_note_python_v${VERSION}.zip"
+RUST_ZIP_NAME="dot_note_rust_v${VERSION}.zip"
+PYTHON_ZIP_PATH="$RELEASE_DIR/$PYTHON_ZIP_NAME"
+RUST_ZIP_PATH="$RELEASE_DIR/$RUST_ZIP_NAME"
+
+for f in "$RELEASE_DIR/$PYTHON_ZIP_NAME" "$ROOT_DIR/$PYTHON_ZIP_NAME" \
+          "$RELEASE_DIR/$RUST_ZIP_NAME" "$ROOT_DIR/$RUST_ZIP_NAME"; do
+	[ -f "$f" ] && rm -f "$f"
+done
 
 cd "$RELEASE_DIR"
-zip -r -9 "$TMP_ZIP_PATH" "python" "rust" "README.txt" "LICENSE"
-mv "$TMP_ZIP_PATH" "$ZIP_PATH"
-echo "Created archive: $ZIP_PATH"
+zip -r -9 "$ROOT_DIR/$PYTHON_ZIP_NAME" "python"
+mv "$ROOT_DIR/$PYTHON_ZIP_NAME" "$PYTHON_ZIP_PATH"
+echo "Created archive: $PYTHON_ZIP_PATH"
 
-"$ROOT_DIR/release_gh.sh" "v${VERSION}" "$ZIP_PATH"
+zip -r -9 "$ROOT_DIR/$RUST_ZIP_NAME" "rust"
+mv "$ROOT_DIR/$RUST_ZIP_NAME" "$RUST_ZIP_PATH"
+echo "Created archive: $RUST_ZIP_PATH"
+
+"$ROOT_DIR/release_gh.sh" "v${VERSION}" "$PYTHON_ZIP_PATH" "$RUST_ZIP_PATH"

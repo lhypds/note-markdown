@@ -5,10 +5,15 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 RELEASE_DIR="$ROOT_DIR/release"
 
-# Accept VERSION and BUILD_ZIP as arguments, or derive them
-if [ $# -ge 2 ]; then
+# Accept VERSION and one or more ZIP paths as arguments, or derive them
+if [ $# -ge 3 ]; then
 	VERSION="$1"
-	ZIP_PATH="$2"
+	PYTHON_ZIP_PATH="$2"
+	RUST_ZIP_PATH="$3"
+elif [ $# -ge 2 ]; then
+	VERSION="$1"
+	PYTHON_ZIP_PATH="$2"
+	RUST_ZIP_PATH=""
 else
 	VERSION_FILE="$ROOT_DIR/VERSION"
 	if [ ! -f "$VERSION_FILE" ]; then
@@ -16,12 +21,17 @@ else
 		exit 1
 	fi
 	VERSION="v$(cat "$VERSION_FILE" | tr -d '[:space:]')"
-	ZIP_PATH="$RELEASE_DIR/dot_note_${VERSION}.zip"
+	PYTHON_ZIP_PATH="$RELEASE_DIR/dot_note_python_${VERSION}.zip"
+	RUST_ZIP_PATH="$RELEASE_DIR/dot_note_rust_${VERSION}.zip"
 fi
 
-# Check zip exists
-if [ ! -f "$ZIP_PATH" ]; then
-	echo "Error: $ZIP_PATH not found. Run release.sh first."
+# Check zips exist
+if [ ! -f "$PYTHON_ZIP_PATH" ]; then
+	echo "Error: $PYTHON_ZIP_PATH not found. Run release.sh first."
+	exit 1
+fi
+if [ -n "$RUST_ZIP_PATH" ] && [ ! -f "$RUST_ZIP_PATH" ]; then
+	echo "Error: $RUST_ZIP_PATH not found. Run release.sh first."
 	exit 1
 fi
 
@@ -33,7 +43,8 @@ fi
 
 echo "Ready to publish release:"
 echo "  Tag:    $VERSION"
-echo "  Asset:  $ZIP_PATH"
+echo "  Asset:  $PYTHON_ZIP_PATH"
+[ -n "$RUST_ZIP_PATH" ] && echo "  Asset:  $RUST_ZIP_PATH"
 echo ""
 read -r -p "Release notes (leave blank for default): " RELEASE_NOTES
 if [ -z "$RELEASE_NOTES" ]; then
@@ -46,9 +57,13 @@ if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
 	exit 0
 fi
 
-# Create tag and GitHub release, upload zip
-gh release create "$VERSION" "$ZIP_PATH" \
+# Collect assets
+ZIP_ASSETS=("$PYTHON_ZIP_PATH")
+[ -n "$RUST_ZIP_PATH" ] && ZIP_ASSETS+=("$RUST_ZIP_PATH")
+
+# Create tag and GitHub release, upload zips
+gh release create "$VERSION" "${ZIP_ASSETS[@]}" \
 	--title "$VERSION" \
 	--notes "$RELEASE_NOTES"
 
-echo "Published release $VERSION with $ZIP_PATH"
+echo "Published release $VERSION with ${ZIP_ASSETS[*]}"
