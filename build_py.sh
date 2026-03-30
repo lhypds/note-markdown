@@ -39,6 +39,7 @@ build_target() {
 	local pyinstaller_args=(
 		--clean
 		--noconfirm
+		--add-data "VERSION:."
 		--hidden-import commands.format
 		--hidden-import commands.markdown
 		--hidden-import commands.create
