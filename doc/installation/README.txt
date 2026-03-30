@@ -2,8 +2,13 @@
 macOS: Opening the App for the First Time
 ==========================================
 
-macOS may block this app from running because it is not signed with an Apple
-Developer certificate. To open it anyway, follow these steps:
+
+As Apple blocks apps not signed with an Apple Developer certificate.  
+An "Apple Developer Certificate" cost 99$ per year...
+Sorry, but, I don't want to pay.  
+
+
+To open it anyway, follow these steps:
 
 
 Method 1: System Preferences
