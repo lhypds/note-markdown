@@ -1,7 +1,7 @@
 [package]
 name = "note"
-version = "0.0.1"
-edition = "2021"
+version = "0.0.1" # This is not the real version
+edition = "2021" # Rust edition
 build = "build.rs"
 
 [[bin]]
