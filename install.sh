@@ -58,5 +58,4 @@ elif [ "$VARIANT" = "python" ]; then
 fi
 
 echo ""
-echo "\`note\` executable has been installed to \`$BIN_DIR/note\`. You can now run:"
-echo "note create ..."
+echo "\`note\` executable has been installed to \`$BIN_DIR/note\`."
