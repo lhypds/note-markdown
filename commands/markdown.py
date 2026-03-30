@@ -130,9 +130,7 @@ def convert_to_markdown(input_file, output_file, preview=False):
 def build_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--file",
-        "-f",
-        required=False,
+        "file",
         help="Path to the .txt file to process.",
     )
     parser.add_argument(
@@ -146,10 +144,6 @@ def build_parser():
 def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
-
-    if not args.file:
-        print("Error: no file path provided.")
-        raise SystemExit(1)
 
     input_file = args.file.strip()
     if not input_file.endswith(".txt"):

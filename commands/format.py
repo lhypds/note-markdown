@@ -74,9 +74,7 @@ def build_parser():
         description="Fix section underline length for one note file."
     )
     parser.add_argument(
-        "--file",
-        "-f",
-        dest="file_path",
+        "file_path",
         help="Target note file path.",
     )
     return parser
@@ -86,12 +84,7 @@ def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    file_path = args.file_path
-    if not file_path:
-        print("Error: no file path provided.")
-        raise SystemExit(1)
-
-    file_path = os.path.abspath(file_path)
+    file_path = os.path.abspath(args.file_path)
 
     if not os.path.isfile(file_path):
         print(f"Error: '{file_path}' is not a valid file.")

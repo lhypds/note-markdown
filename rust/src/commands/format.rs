@@ -85,29 +85,8 @@ pub fn run(file_path: &Path) -> Result<(), String> {
 }
 
 pub fn main(argv: &[String]) {
-    let mut file_path: Option<String> = None;
-
-    let mut i = 0usize;
-    while i < argv.len() {
-        match argv[i].as_str() {
-            "-f" | "--file" => {
-                if i + 1 < argv.len() {
-                    file_path = Some(argv[i + 1].clone());
-                    i += 2;
-                } else {
-                    eprintln!("Error: --file requires an argument.");
-                    std::process::exit(1);
-                }
-            }
-            arg => {
-                eprintln!("Error: unrecognized argument '{}'.", arg);
-                std::process::exit(1);
-            }
-        }
-    }
-
-    let file_path = match file_path {
-        Some(p) => p,
+    let file_path = match argv.first() {
+        Some(p) => p.clone(),
         None => {
             eprintln!("Error: no file path provided.");
             std::process::exit(1);

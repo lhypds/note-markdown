@@ -187,13 +187,9 @@ pub fn main(argv: &[String]) {
                 preview = true;
                 i += 1;
             }
-            "--file" | "-f" => {
-                if i + 1 >= argv.len() {
-                    eprintln!("Error: --file requires a value.");
-                    std::process::exit(1);
-                }
-                file = Some(argv[i + 1].clone());
-                i += 2;
+            arg if !arg.starts_with('-') => {
+                file = Some(arg.to_string());
+                i += 1;
             }
             arg => {
                 eprintln!("Error: unrecognized argument '{}'.", arg);
