@@ -77,12 +77,14 @@ pub fn run(file_path: &Path) -> Result<(), String> {
         }
     }
 
-    // Ensure exactly 2 blank lines after a `===` title underline.
+    // Normalize blank lines around underlines:
+    //   `===` title   : exactly 2 blank lines after
+    //   `---` section : exactly 2 blank lines before the title, exactly 1 after
     let mut i = 0;
     while i < lines.len() {
         let trimmed = lines[i].trim_end_matches(['\r', '\n']);
         if !trimmed.is_empty() && trimmed.chars().all(|c| c == '=') {
-            // Count blank lines immediately following the underline.
+            // === : exactly 2 blank lines after
             let mut blank_count = 0;
             let mut j = i + 1;
             while j < lines.len() && lines[j].trim_end_matches(['\r', '\n']).is_empty() {
@@ -90,11 +92,10 @@ pub fn run(file_path: &Path) -> Result<(), String> {
                 j += 1;
             }
             if blank_count < 2 {
-                let ending = detect_line_ending(&lines[i]);
-                let blank_line = format!("{}", ending);
+                let ending = detect_line_ending(&lines[i]).to_string();
                 let needed = 2 - blank_count;
                 for k in 0..needed {
-                    lines.insert(i + 1 + k, blank_line.clone());
+                    lines.insert(i + 1 + k, ending.clone());
                 }
                 fixed_count += needed;
                 i += 1 + needed + blank_count;
@@ -106,35 +107,55 @@ pub fn run(file_path: &Path) -> Result<(), String> {
             } else {
                 i += 1 + blank_count;
             }
-        } else {
-            i += 1;
-        }
-    }
-
-    // Ensure exactly 1 blank line after a `---` section title underline.
-    let mut i = 0;
-    while i < lines.len() {
-        let trimmed = lines[i].trim_end_matches(['\r', '\n']);
-        if !trimmed.is_empty() && trimmed.chars().all(|c| c == '-') {
-            let mut blank_count = 0;
+        } else if !trimmed.is_empty() && trimmed.chars().all(|c| c == '-') {
+            // --- : exactly 2 blank lines before the title (line at i-1)
+            if i >= 2 {
+                let mut blank_count_before: usize = 0;
+                let mut k = i.saturating_sub(2);
+                loop {
+                    if lines[k].trim_end_matches(['\r', '\n']).is_empty() {
+                        blank_count_before += 1;
+                        if k == 0 { break; }
+                        k -= 1;
+                    } else {
+                        break;
+                    }
+                }
+                let ending = detect_line_ending(&lines[i]).to_string();
+                if blank_count_before < 2 {
+                    let needed = 2 - blank_count_before;
+                    for _ in 0..needed {
+                        lines.insert(i - 1, ending.clone());
+                    }
+                    fixed_count += needed;
+                    i += needed;
+                } else if blank_count_before > 2 {
+                    let excess = blank_count_before - 2;
+                    let start = i - 1 - blank_count_before;
+                    lines.drain(start..start + excess);
+                    fixed_count += excess;
+                    i -= excess;
+                }
+            }
+            // --- : exactly 1 blank line after
+            let mut blank_count_after: usize = 0;
             let mut j = i + 1;
             while j < lines.len() && lines[j].trim_end_matches(['\r', '\n']).is_empty() {
-                blank_count += 1;
+                blank_count_after += 1;
                 j += 1;
             }
-            if blank_count < 1 {
-                let ending = detect_line_ending(&lines[i]);
-                let blank_line = format!("{}", ending);
-                lines.insert(i + 1, blank_line);
+            let ending = detect_line_ending(&lines[i]).to_string();
+            if blank_count_after < 1 {
+                lines.insert(i + 1, ending);
                 fixed_count += 1;
                 i += 2;
-            } else if blank_count > 1 {
-                let excess = blank_count - 1;
+            } else if blank_count_after > 1 {
+                let excess = blank_count_after - 1;
                 lines.drain(i + 1..i + 1 + excess);
                 fixed_count += excess;
                 i += 2;
             } else {
-                i += 1 + blank_count;
+                i += 1 + blank_count_after;
             }
         } else {
             i += 1;

@@ -63,12 +63,14 @@ def format_note(file_path):
             lines[i + 2] = new_line
             fixed_count += 1
 
-    # Ensure exactly 2 blank lines after a `===` title underline.
+    # Normalize blank lines around underlines:
+    #   `===` title      : exactly 2 blank lines after
+    #   `---` section    : exactly 2 blank lines before the title, exactly 1 after
     i = 0
     while i < len(lines):
         trimmed = lines[i].rstrip("\r\n")
         if trimmed and trimmed.replace("=", "") == "":
-            # Count blank lines immediately following the underline.
+            # === : exactly 2 blank lines after
             blank_count = 0
             j = i + 1
             while j < len(lines) and lines[j].rstrip("\r\n") == "":
@@ -76,10 +78,9 @@ def format_note(file_path):
                 j += 1
             if blank_count < 2:
                 ending = detect_line_ending(lines[i])
-                blank_line = ending
                 needed = 2 - blank_count
                 for k in range(needed):
-                    lines.insert(i + 1 + k, blank_line)
+                    lines.insert(i + 1 + k, ending)
                 fixed_count += needed
                 i += 1 + needed + blank_count
             elif blank_count > 2:
@@ -89,31 +90,46 @@ def format_note(file_path):
                 i += 1 + 2
             else:
                 i += 1 + blank_count
-        else:
-            i += 1
-
-    # Ensure exactly 1 blank line after a `---` section title underline.
-    i = 0
-    while i < len(lines):
-        trimmed = lines[i].rstrip("\r\n")
-        if trimmed and trimmed.replace("-", "") == "":
-            blank_count = 0
+        elif trimmed and trimmed.replace("-", "") == "":
+            # --- : exactly 2 blank lines before the title (line at i-1)
+            if i >= 2:
+                blank_count_before = 0
+                k = i - 2
+                while k >= 0 and lines[k].rstrip("\r\n") == "":
+                    blank_count_before += 1
+                    k -= 1
+                if blank_count_before < 2:
+                    ending = detect_line_ending(lines[i])
+                    needed = 2 - blank_count_before
+                    for _ in range(needed):
+                        lines.insert(i - 1, ending)
+                    fixed_count += needed
+                    i += needed
+                elif blank_count_before > 2:
+                    excess = blank_count_before - 2
+                    del lines[
+                        i - 1 - blank_count_before : i - 1 - blank_count_before + excess
+                    ]
+                    fixed_count += excess
+                    i -= excess
+            # --- : exactly 1 blank line after
+            blank_count_after = 0
             j = i + 1
             while j < len(lines) and lines[j].rstrip("\r\n") == "":
-                blank_count += 1
+                blank_count_after += 1
                 j += 1
-            if blank_count < 1:
+            if blank_count_after < 1:
                 ending = detect_line_ending(lines[i])
                 lines.insert(i + 1, ending)
                 fixed_count += 1
-                i += 1 + 1
-            elif blank_count > 1:
-                excess = blank_count - 1
+                i += 2
+            elif blank_count_after > 1:
+                excess = blank_count_after - 1
                 del lines[i + 1 : i + 1 + excess]
                 fixed_count += excess
-                i += 1 + 1
+                i += 2
             else:
-                i += 1 + blank_count
+                i += 1 + blank_count_after
         else:
             i += 1
 
