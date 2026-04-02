@@ -38,8 +38,20 @@ def convert_to_markdown(input_file, output_file, preview=False):
 
     # mark HTML blocks with ###HTML###
     VOID_ELEMENTS = {
-        "div",
+        "area",
+        "base",
+        "br",
+        "col",
+        "embed",
+        "hr",
         "img",
+        "input",
+        "link",
+        "meta",
+        "param",
+        "source",
+        "track",
+        "wbr",
     }
     p = 0
     while p < len(lines):

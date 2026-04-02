@@ -149,7 +149,10 @@ pub fn run(input_file: &Path, output_file: &Path, preview: bool) -> Result<(), S
     };
 
     // Mark HTML blocks with ###HTML###
-    let void_elements = ["div", "img"];
+    let void_elements = [
+        "area", "base", "br", "col", "embed", "hr", "img",
+        "input", "link", "meta", "param", "source", "track", "wbr",
+    ];
     let mut p = 0usize;
     while p < lines.len() {
         if let Some(tag) = html_tag_at_start(&lines[p]) {
